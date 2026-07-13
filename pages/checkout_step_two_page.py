@@ -18,6 +18,7 @@ class CheckoutStepTwoPage(BasePage):
     TAX_LABEL = (By.CLASS_NAME, "summary_tax_label")
     TOTAL_LABEL = (By.CLASS_NAME, "summary_total_label")
     FINISH_BUTTON = (By.ID, "finish")
+    CANCEL_BUTTON = (By.ID, "cancel")
 
     def is_loaded(self) -> bool:
         return self.is_visible(self.PAGE_TITLE) and self.text_of(self.PAGE_TITLE) == "Checkout: Overview"
@@ -41,3 +42,10 @@ class CheckoutStepTwoPage(BasePage):
     def finish(self) -> CheckoutCompletePage:
         self.click(self.FINISH_BUTTON)
         return CheckoutCompletePage(self.driver)
+
+    def cancel(self):
+        # Lazy import avoids a circular dependency with InventoryPage.
+        from pages.inventory_page import InventoryPage
+
+        self.click(self.CANCEL_BUTTON)
+        return InventoryPage(self.driver)

@@ -34,3 +34,10 @@ class CartPage(BasePage):
     def proceed_to_checkout(self) -> CheckoutStepOnePage:
         self.click(self.CHECKOUT_BUTTON)
         return CheckoutStepOnePage(self.driver)
+
+    def continue_shopping(self):
+        # Lazy import avoids a circular dependency with InventoryPage.
+        from pages.inventory_page import InventoryPage
+
+        self.click(self.CONTINUE_SHOPPING)
+        return InventoryPage(self.driver)

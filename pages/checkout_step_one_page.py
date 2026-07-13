@@ -32,6 +32,13 @@ class CheckoutStepOnePage(BasePage):
         self.click(self.CONTINUE)
         return self
 
+    def cancel(self):
+        # Lazy import avoids a circular dependency with CartPage.
+        from pages.cart_page import CartPage
+
+        self.click(self.CANCEL)
+        return CartPage(self.driver)
+
     def error_message(self) -> str:
         return self.text_of(self.ERROR_BANNER)
 
