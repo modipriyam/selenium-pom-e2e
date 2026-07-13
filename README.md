@@ -69,6 +69,21 @@ E2E_HEADLESS=true pytest
 pytest -m smoke
 ```
 
+## Running the live demo
+
+`tests/test_demo_e2e.py` is one long end-to-end journey (login → sort → PDP →
+build a cart → validation error → checkout → order confirmation → logout)
+that's meant to be watched, not just verified. Run it headed with a pacing
+delay so a viewer can follow along:
+
+```bash
+E2E_STEP_DELAY=1.2 pytest tests/test_demo_e2e.py -v -s
+```
+
+`E2E_STEP_DELAY` defaults to `0` (so CI stays fast) and only inserts pauses
+inside this one test. The `-s` flag lets the numbered `STEP N - ...` log lines
+print live, so the console and browser stay in sync during the demo.
+
 Reports land in `reports/report.html`; failure screenshots (if any) are saved
 under `screenshots/`.
 

@@ -25,6 +25,9 @@ class Config:
     headless: bool = _get_bool("E2E_HEADLESS", False)
     implicit_wait: float = float(os.getenv("E2E_IMPLICIT_WAIT", "0"))
     explicit_wait: float = float(os.getenv("E2E_EXPLICIT_WAIT", "10"))
+    # Optional pacing delay (seconds) inserted between demo steps.
+    # 0 means no pause — safe for CI. Set e.g. 1.0 to slow a headed demo down.
+    step_delay: float = float(os.getenv("E2E_STEP_DELAY", "0"))
     window_width: int = int(os.getenv("E2E_WINDOW_WIDTH", "1440"))
     window_height: int = int(os.getenv("E2E_WINDOW_HEIGHT", "900"))
 

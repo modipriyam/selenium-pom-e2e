@@ -6,6 +6,7 @@ This keeps waits, error handling, and logging consistent across the suite.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Tuple
 
 from selenium.webdriver.common.keys import Keys
@@ -101,3 +102,13 @@ class BasePage:
 
     def current_path(self) -> str:
         return self.driver.current_url.replace(CONFIG.base_url, "", 1)
+
+    def pause(self, seconds: float | None = None) -> None:
+        """Sleep for `seconds` (or `CONFIG.step_delay` if omitted).
+
+        Used only by the demo test so a viewer can follow along; production
+        assertions should never rely on sleeps. Default is 0 so CI is unaffected.
+        """
+        delay = CONFIG.step_delay if seconds is None else seconds
+        if delay > 0:
+            time.sleep(delay)
