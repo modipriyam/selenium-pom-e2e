@@ -25,8 +25,10 @@ class CartPage(BasePage):
         return [el.text for el in self.driver.find_elements(*self.ITEM_NAMES)]
 
     def item_prices(self) -> List[float]:
-        raw = [el.text for el in self.driver.find_elements(*self.ITEM_PRICES)]
-        return [float(p.replace("$", "")) for p in raw]
+        return [
+            float(el.text.replace("$", ""))
+            for el in self.driver.find_elements(*self.ITEM_PRICES)
+        ]
 
     def item_count(self) -> int:
         return len(self.driver.find_elements(*self.CART_ITEMS))
@@ -36,7 +38,6 @@ class CartPage(BasePage):
         return CheckoutStepOnePage(self.driver)
 
     def continue_shopping(self):
-        # Lazy import avoids a circular dependency with InventoryPage.
         from pages.inventory_page import InventoryPage
 
         self.click(self.CONTINUE_SHOPPING)

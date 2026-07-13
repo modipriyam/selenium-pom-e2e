@@ -1,4 +1,3 @@
-"""Global pytest configuration: driver lifecycle, artifact folders, failure hooks."""
 from __future__ import annotations
 
 import datetime as dt
@@ -34,7 +33,7 @@ def pytest_configure(config: pytest.Config) -> None:
 @pytest.fixture()
 def driver(request: pytest.FixtureRequest) -> Iterator[WebDriver]:
     drv = build_driver()
-    request.node._driver = drv  # exposes the driver to the failure hook
+    request.node._driver = drv
     try:
         yield drv
     finally:
@@ -43,7 +42,6 @@ def driver(request: pytest.FixtureRequest) -> Iterator[WebDriver]:
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
-    """Capture a screenshot when a test fails during its call phase."""
     outcome = yield
     report = outcome.get_result()
 
@@ -63,5 +61,5 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
         if os.getenv("GITHUB_STEP_SUMMARY"):
             with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
                 fh.write(f"- Failure screenshot: `{path.relative_to(ROOT_DIR)}`\n")
-    except Exception as exc:  # pragma: no cover - best effort
+    except Exception as exc:
         log.warning("Could not save screenshot for %s: %s", item.name, exc)

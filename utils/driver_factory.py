@@ -1,4 +1,3 @@
-"""Create Selenium WebDriver instances configured for local and CI runs."""
 from __future__ import annotations
 
 import logging
@@ -19,7 +18,6 @@ def _chrome(headless: bool) -> WebDriver:
     opts = ChromeOptions()
     if headless:
         opts.add_argument("--headless=new")
-    # Stable defaults for CI containers where /dev/shm is tiny and there is no GPU.
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--disable-gpu")
@@ -27,7 +25,6 @@ def _chrome(headless: bool) -> WebDriver:
     opts.add_argument("--disable-blink-features=AutomationControlled")
     opts.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     opts.add_experimental_option("useAutomationExtension", False)
-
     return webdriver.Chrome(service=ChromeService(), options=opts)
 
 

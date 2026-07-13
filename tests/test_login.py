@@ -1,4 +1,3 @@
-"""Login-focused scenarios that guard the entry point to the checkout flow."""
 from __future__ import annotations
 
 import pytest

@@ -6,8 +6,6 @@ from pages.base_page import BasePage
 
 
 class ProductDetailPage(BasePage):
-    """POM for a single-product detail page (`/inventory-item.html?id=...`)."""
-
     NAME = (By.CLASS_NAME, "inventory_details_name")
     DESCRIPTION = (By.CLASS_NAME, "inventory_details_desc")
     PRICE = (By.CLASS_NAME, "inventory_details_price")
@@ -41,7 +39,6 @@ class ProductDetailPage(BasePage):
         return int(self.text_of(self.CART_BADGE))
 
     def back_to_products(self):
-        # Lazy import avoids a circular dependency with InventoryPage.
         from pages.inventory_page import InventoryPage
 
         self.click(self.BACK_BUTTON)

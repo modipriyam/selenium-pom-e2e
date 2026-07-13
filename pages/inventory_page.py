@@ -20,9 +20,6 @@ class InventoryPage(BasePage):
     CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
     CART_BADGE = (By.CLASS_NAME, "shopping_cart_badge")
 
-    # Burger menu is inlined here rather than a separate POM: the menu is
-    # reachable from every authenticated page but our tests only enter it from
-    # the inventory page, so a full component class would not earn its keep.
     BURGER_BUTTON = (By.ID, "react-burger-menu-btn")
     LOGOUT_LINK = (By.ID, "logout_sidebar_link")
     RESET_APP_LINK = (By.ID, "reset_sidebar_link")
@@ -67,7 +64,6 @@ class InventoryPage(BasePage):
         return CartPage(self.driver)
 
     def open_product_details(self, product_name: str) -> ProductDetailPage:
-        """Click the named product's title link and return its detail POM."""
         for el in self.driver.find_elements(*self.INVENTORY_ITEM_NAME):
             if el.text == product_name:
                 self.driver.execute_script(
@@ -81,14 +77,11 @@ class InventoryPage(BasePage):
         self.select_by_visible_text(self.SORT_DROPDOWN, visible_text)
         return self
 
-    # ---------- Burger menu actions ----------
-
     def _open_menu(self) -> None:
         self.click(self.BURGER_BUTTON)
         self.wait.until(lambda d: d.find_element(*self.LOGOUT_LINK).is_displayed())
 
     def logout(self):
-        # Lazy import avoids a circular dependency with LoginPage.
         from pages.login_page import LoginPage
 
         self._open_menu()

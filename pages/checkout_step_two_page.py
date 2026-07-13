@@ -44,7 +44,6 @@ class CheckoutStepTwoPage(BasePage):
         return CheckoutCompletePage(self.driver)
 
     def cancel(self):
-        # Lazy import avoids a circular dependency with InventoryPage.
         from pages.inventory_page import InventoryPage
 
         self.click(self.CANCEL_BUTTON)

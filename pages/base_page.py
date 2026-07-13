@@ -1,8 +1,3 @@
-"""Shared Selenium primitives used by every page object.
-
-Page objects should call these helpers instead of touching WebDriver directly.
-This keeps waits, error handling, and logging consistent across the suite.
-"""
 from __future__ import annotations
 
 import logging
@@ -42,12 +37,8 @@ class BasePage:
         return self.wait.until(EC.element_to_be_clickable(locator))
 
     def click(self, locator: Locator) -> None:
-        """Scroll to and click an element.
-
-        Uses a scroll-then-JS-click sequence because the standard Selenium
-        `.click()` intermittently no-ops on SauceDemo's React-rebuilt buttons
-        under headless Chrome. Behaviorally identical from a user's viewpoint.
-        """
+        # Native .click() sometimes no-ops on SauceDemo's React buttons in
+        # headless Chrome; scroll-into-view + JS click is reliable.
         element = self._clickable(locator)
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center'}); arguments[0].click();",
@@ -55,18 +46,9 @@ class BasePage:
         )
 
     def native_click(self, locator: Locator) -> None:
-        """Standard WebDriver click; use when explicitly exercising the event chain."""
         self._clickable(locator).click()
 
     def type_text(self, locator: Locator, value: str, clear_first: bool = True) -> None:
-        """Focus, clear (keyboard), and type into an input.
-
-        Avoids WebElement.clear() because on React-controlled inputs it can leave
-        the framework state out of sync with the DOM value. A Ctrl+A / Delete
-        sequence dispatches native key events that React sees. After typing we
-        re-check the DOM value and, if it drifted, fall back to setting it via
-        JS and dispatching an `input` event so the framework re-syncs.
-        """
         element = self._visible(locator)
         element.click()
         if clear_first:
@@ -74,6 +56,8 @@ class BasePage:
             element.send_keys(Keys.DELETE)
         element.send_keys(value)
 
+        # React can drop the value if send_keys races with a re-render;
+        # if that happens, set the value via JS and fire input/change events.
         if element.get_attribute("value") != value:
             self.driver.execute_script(
                 "const el = arguments[0], val = arguments[1];"
@@ -104,11 +88,6 @@ class BasePage:
         return self.driver.current_url.replace(CONFIG.base_url, "", 1)
 
     def pause(self, seconds: float | None = None) -> None:
-        """Sleep for `seconds` (or `CONFIG.step_delay` if omitted).
-
-        Used only by the demo test so a viewer can follow along; production
-        assertions should never rely on sleeps. Default is 0 so CI is unaffected.
-        """
         delay = CONFIG.step_delay if seconds is None else seconds
         if delay > 0:
             time.sleep(delay)

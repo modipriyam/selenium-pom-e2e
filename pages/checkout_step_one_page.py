@@ -33,7 +33,6 @@ class CheckoutStepOnePage(BasePage):
         return self
 
     def cancel(self):
-        # Lazy import avoids a circular dependency with CartPage.
         from pages.cart_page import CartPage
 
         self.click(self.CANCEL)

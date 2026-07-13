@@ -23,11 +23,9 @@ class CheckoutCompletePage(BasePage):
         return self.text_of(self.COMPLETE_TEXT)
 
     def order_is_confirmed(self) -> bool:
-        header = self.confirmation_header().lower()
-        return "thank you for your order" in header
+        return "thank you for your order" in self.confirmation_header().lower()
 
     def back_to_products(self):
-        # Lazy import avoids a circular dependency with InventoryPage.
         from pages.inventory_page import InventoryPage
 
         self.click(self.BACK_HOME)
