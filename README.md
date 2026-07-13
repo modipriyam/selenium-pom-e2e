@@ -59,11 +59,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run the whole suite headlessly
+# Run the whole suite (headed by default — you see the browser)
 pytest
 
-# Run only the checkout scenarios in a visible browser
-E2E_HEADLESS=false pytest -m checkout
+# Run headlessly instead
+E2E_HEADLESS=true pytest
 
 # Run only smoke tests
 pytest -m smoke
@@ -81,7 +81,7 @@ in the workflow to point at a different environment.
 | ------------------- | -------------------------- | --------------------------------- |
 | `E2E_BASE_URL`      | `https://www.saucedemo.com`| Target application URL            |
 | `E2E_BROWSER`       | `chrome`                   | `chrome` or `firefox`             |
-| `E2E_HEADLESS`      | `true`                     | Set to `false` to see the browser |
+| `E2E_HEADLESS`      | `false` (locally)          | Locally headed; CI sets `true`    |
 | `E2E_EXPLICIT_WAIT` | `10`                       | Seconds for explicit waits        |
 | `E2E_STANDARD_USER` | `standard_user`            | Login username                    |
 | `E2E_PASSWORD`      | `secret_sauce`             | Login password                    |
