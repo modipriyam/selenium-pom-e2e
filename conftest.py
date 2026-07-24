@@ -1,4 +1,7 @@
 import datetime as dt
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -7,7 +10,9 @@ from selenium.webdriver.chrome.options import Options
 
 from utils.config import CONFIG
 
-SCREENSHOTS_DIR = Path(__file__).parent / "screenshots"
+ROOT_DIR = Path(__file__).parent
+SCREENSHOTS_DIR = ROOT_DIR / "screenshots"
+REPORT_PATH = ROOT_DIR / "reports" / "report.html"
 
 
 def _build_driver():
@@ -41,3 +46,22 @@ def pytest_runtest_makereport(item, call):
     SCREENSHOTS_DIR.mkdir(exist_ok=True)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     drv.save_screenshot(str(SCREENSHOTS_DIR / f"{item.name}-{stamp}.png"))
+
+
+def pytest_sessionfinish(session, exitstatus):
+    # auto-open the HTML report locally; opt out with E2E_OPEN_REPORT=false or in CI
+    if os.environ.get("CI"):
+        return
+    if os.environ.get("E2E_OPEN_REPORT", "true").lower() in {"0", "false", "no"}:
+        return
+    if not REPORT_PATH.exists():
+        return
+    try:
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", str(REPORT_PATH)])
+        elif sys.platform.startswith("linux"):
+            subprocess.Popen(["xdg-open", str(REPORT_PATH)])
+        elif sys.platform == "win32":
+            os.startfile(str(REPORT_PATH))  # type: ignore[attr-defined]
+    except Exception:
+        pass

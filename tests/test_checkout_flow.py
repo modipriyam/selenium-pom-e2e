@@ -6,25 +6,25 @@ from pages.login_page import LoginPage
 from utils.config import CONFIG
 
 SCENARIOS = [
-    ("one_item", ["Sauce Labs Backpack"], ("John", "Smith", "94016")),
-    (
-        "three_items",
+    pytest.param(
+        ["Sauce Labs Backpack"],
+        ("John", "Smith", "94016"),
+        id="one_item",
+    ),
+    pytest.param(
         ["Sauce Labs Backpack", "Sauce Labs Bike Light", "Sauce Labs Bolt T-Shirt"],
         ("Jane", "Doe", "10001"),
+        id="three_items",
     ),
-    (
-        "mixed_prices",
+    pytest.param(
         ["Sauce Labs Fleece Jacket", "Sauce Labs Onesie", "Test.allTheThings() T-Shirt (Red)"],
         ("Test", "User", "12345"),
+        id="mixed_prices",
     ),
 ]
 
 
-@pytest.mark.parametrize(
-    "products, customer",
-    [(p, c) for _, p, c in SCENARIOS],
-    ids=[s[0] for s in SCENARIOS],
-)
+@pytest.mark.parametrize("products, customer", SCENARIOS)
 def test_checkout(driver, products, customer):
     inventory = LoginPage(driver).open().login(CONFIG.standard_user, CONFIG.password)
     assert inventory.is_loaded()
