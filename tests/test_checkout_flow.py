@@ -1,24 +1,31 @@
-from __future__ import annotations
-
-import json
 import math
-from pathlib import Path
 
 import pytest
 
 from pages.login_page import LoginPage
 from utils.config import CONFIG
 
-DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "checkout_scenarios.json"
-SCENARIOS = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+SCENARIOS = [
+    ("one_item", ["Sauce Labs Backpack"], ("John", "Smith", "94016")),
+    (
+        "three_items",
+        ["Sauce Labs Backpack", "Sauce Labs Bike Light", "Sauce Labs Bolt T-Shirt"],
+        ("Jane", "Doe", "10001"),
+    ),
+    (
+        "mixed_prices",
+        ["Sauce Labs Fleece Jacket", "Sauce Labs Onesie", "Test.allTheThings() T-Shirt (Red)"],
+        ("Test", "User", "12345"),
+    ),
+]
 
 
-@pytest.mark.checkout
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=[s["id"] for s in SCENARIOS])
-def test_full_checkout_flow(driver, scenario):
-    products = scenario["products"]
-    customer = scenario["customer"]
-
+@pytest.mark.parametrize(
+    "products, customer",
+    [(p, c) for _, p, c in SCENARIOS],
+    ids=[s[0] for s in SCENARIOS],
+)
+def test_checkout(driver, products, customer):
     inventory = LoginPage(driver).open().login(CONFIG.standard_user, CONFIG.password)
     assert inventory.is_loaded()
     assert inventory.cart_count() == 0
@@ -34,9 +41,7 @@ def test_full_checkout_flow(driver, scenario):
     cart_total = round(sum(cart.item_prices()), 2)
 
     step_one = cart.proceed_to_checkout()
-    step_two = step_one.fill_customer_information(
-        customer["first_name"], customer["last_name"], customer["postal_code"]
-    ).submit()
+    step_two = step_one.fill_customer_information(*customer).submit()
 
     assert step_two.is_loaded()
     assert set(step_two.item_names()) == set(products)
@@ -49,19 +54,17 @@ def test_full_checkout_flow(driver, scenario):
     assert complete.order_is_confirmed()
 
 
-@pytest.mark.checkout
-def test_checkout_requires_customer_information(driver):
+def test_checkout_requires_customer_info(driver):
     inventory = LoginPage(driver).open().login(CONFIG.standard_user, CONFIG.password)
     inventory.add_to_cart("Sauce Labs Backpack")
     step_one = inventory.open_cart().proceed_to_checkout()
 
-    step_one.submit_expecting_error()
+    step_one.submit()  # nothing filled in
     assert step_one.has_error()
     assert "First Name is required" in step_one.error_message()
 
 
-@pytest.mark.checkout
-def test_cart_updates_when_item_removed(driver):
+def test_remove_from_cart(driver):
     inventory = LoginPage(driver).open().login(CONFIG.standard_user, CONFIG.password)
 
     inventory.add_to_cart("Sauce Labs Backpack")

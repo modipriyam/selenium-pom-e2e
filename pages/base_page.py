@@ -1,93 +1,37 @@
-from __future__ import annotations
-
-import logging
-import time
-from typing import Tuple
-
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
 
 from utils.config import CONFIG
 
-Locator = Tuple[str, str]
-
-log = logging.getLogger(__name__)
-
 
 class BasePage:
-    url_path: str = ""
+    """Shared helpers for every page object."""
 
-    def __init__(self, driver: WebDriver) -> None:
+    url_path = ""
+
+    def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver, CONFIG.explicit_wait)
 
-    def open(self) -> "BasePage":
-        target = f"{CONFIG.base_url.rstrip('/')}/{self.url_path.lstrip('/')}"
-        log.info("Navigating to %s", target)
-        self.driver.get(target)
+    def open(self):
+        self.driver.get(f"{CONFIG.base_url.rstrip('/')}/{self.url_path.lstrip('/')}")
         return self
 
-    def _visible(self, locator: Locator) -> WebElement:
-        return self.wait.until(EC.visibility_of_element_located(locator))
+    def click(self, locator):
+        self.wait.until(EC.element_to_be_clickable(locator)).click()
 
-    def _clickable(self, locator: Locator) -> WebElement:
-        return self.wait.until(EC.element_to_be_clickable(locator))
+    def type_text(self, locator, value):
+        el = self.wait.until(EC.visibility_of_element_located(locator))
+        el.clear()
+        el.send_keys(value)
 
-    def click(self, locator: Locator) -> None:
-        # Native .click() sometimes no-ops on SauceDemo's React buttons in
-        # headless Chrome; scroll-into-view + JS click is reliable.
-        element = self._clickable(locator)
-        self.driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center'}); arguments[0].click();",
-            element,
-        )
+    def text_of(self, locator):
+        return self.wait.until(EC.visibility_of_element_located(locator)).text
 
-    def native_click(self, locator: Locator) -> None:
-        self._clickable(locator).click()
-
-    def type_text(self, locator: Locator, value: str, clear_first: bool = True) -> None:
-        element = self._visible(locator)
-        element.click()
-        if clear_first:
-            element.send_keys(Keys.CONTROL, "a")
-            element.send_keys(Keys.DELETE)
-        element.send_keys(value)
-
-        # React can drop the value if send_keys races with a re-render;
-        # if that happens, set the value via JS and fire input/change events.
-        if element.get_attribute("value") != value:
-            self.driver.execute_script(
-                "const el = arguments[0], val = arguments[1];"
-                "const setter = Object.getOwnPropertyDescriptor("
-                "  window.HTMLInputElement.prototype, 'value').set;"
-                "setter.call(el, val);"
-                "el.dispatchEvent(new Event('input', { bubbles: true }));"
-                "el.dispatchEvent(new Event('change', { bubbles: true }));",
-                element,
-                value,
-            )
-
-    def text_of(self, locator: Locator) -> str:
-        return self._visible(locator).text
-
-    def is_visible(self, locator: Locator, timeout: float | None = None) -> bool:
+    def is_visible(self, locator, timeout=None):
         wait = self.wait if timeout is None else WebDriverWait(self.driver, timeout)
         try:
             wait.until(EC.visibility_of_element_located(locator))
             return True
         except Exception:
             return False
-
-    def select_by_visible_text(self, locator: Locator, text: str) -> None:
-        Select(self._visible(locator)).select_by_visible_text(text)
-
-    def current_path(self) -> str:
-        return self.driver.current_url.replace(CONFIG.base_url, "", 1)
-
-    def pause(self, seconds: float | None = None) -> None:
-        delay = CONFIG.step_delay if seconds is None else seconds
-        if delay > 0:
-            time.sleep(delay)

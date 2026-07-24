@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-from typing import List
-
 from selenium.webdriver.common.by import By
 
 from pages.base_page import BasePage
@@ -16,29 +12,19 @@ class CartPage(BasePage):
     ITEM_NAMES = (By.CLASS_NAME, "inventory_item_name")
     ITEM_PRICES = (By.CLASS_NAME, "inventory_item_price")
     CHECKOUT_BUTTON = (By.ID, "checkout")
-    CONTINUE_SHOPPING = (By.ID, "continue-shopping")
 
-    def is_loaded(self) -> bool:
+    def is_loaded(self):
         return self.is_visible(self.PAGE_TITLE) and self.text_of(self.PAGE_TITLE) == "Your Cart"
 
-    def item_names(self) -> List[str]:
+    def item_names(self):
         return [el.text for el in self.driver.find_elements(*self.ITEM_NAMES)]
 
-    def item_prices(self) -> List[float]:
-        return [
-            float(el.text.replace("$", ""))
-            for el in self.driver.find_elements(*self.ITEM_PRICES)
-        ]
+    def item_prices(self):
+        return [float(el.text.replace("$", "")) for el in self.driver.find_elements(*self.ITEM_PRICES)]
 
-    def item_count(self) -> int:
+    def item_count(self):
         return len(self.driver.find_elements(*self.CART_ITEMS))
 
-    def proceed_to_checkout(self) -> CheckoutStepOnePage:
+    def proceed_to_checkout(self):
         self.click(self.CHECKOUT_BUTTON)
         return CheckoutStepOnePage(self.driver)
-
-    def continue_shopping(self):
-        from pages.inventory_page import InventoryPage
-
-        self.click(self.CONTINUE_SHOPPING)
-        return InventoryPage(self.driver)
